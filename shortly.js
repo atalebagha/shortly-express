@@ -48,13 +48,19 @@ app.post('/login', function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
   var userid;
-  var model = Users.query('where','username','=',username).fetch().then(function (model) {
-    console.log(model);
-    req.session.userid = model.id;
-    res.redirect('/');
-  }).catch(function (err) {
-    throw err;
+  var model = new User('username', username).fetch().then(function (model) {
+    if (model) {
+      req.session.userid = model.get('id');
+      res.redirect('/');
+    } else {
+      res.redirect('/login');
+    }
   });
+});
+
+app.get('/logout', function (req, res) {
+  req.session.destroy();
+  res.redirect('/login');
 });
 
 app.get('/signup', function (req, res) {
@@ -78,17 +84,7 @@ app.post('/signup', function (req, res) {
       var userid = model.attributes.id
        req.session.userid = userid;
       res.redirect('/');
-      // req.session.userid =
     });
-
-  // if (userid) {
-  //   var userid = db.knex.select('id').from('users').where('username', username);
-  //   req.session.userid = userid;
-  //     res.redirect('/links');
-  // } else {
-  //   res.redirect('/login');
-  // }
-
 });
 
 
@@ -104,7 +100,8 @@ function(req, res) {
 
 app.get('/links',
 function(req, res) {
-  Links.reset().fetch().then(function(links) {
+  Links.reset()
+  new Link('user_id',req.session.userid).fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
