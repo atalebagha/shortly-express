@@ -74,21 +74,19 @@ app.post('/signup', function (req, res) {
     .save()
     .then(function (model) {
       console.log(model);
-      new User({username: username})
-        .fetch()
-        .then(function (found) {
-        console.log(found);
-      });
+      var userid = model.attributes.id
+       req.session.userid = userid;
+      res.redirect('/');
       // req.session.userid =
     });
 
-  if (userid) {
-    var userid = db.knex.select('id').from('users').where('username', username);
-    req.session.userid = userid;
-      res.redirect('/links');
-  } else {
-    res.redirect('/login');
-  }
+  // if (userid) {
+  //   var userid = db.knex.select('id').from('users').where('username', username);
+  //   req.session.userid = userid;
+  //     res.redirect('/links');
+  // } else {
+  //   res.redirect('/login');
+  // }
 
 });
 
