@@ -1,13 +1,12 @@
 var Bookshelf = require('bookshelf');
 var knex = require('knex');
 var path = require('path');
+var sqlite3 = require('sqlite3');
 
 var db = Bookshelf.initialize({
   client: 'sqlite3',
   connection: {
     host: '127.0.0.1',
-    user: 'your_database_user',
-    password: 'password',
     database: 'shortlydb',
     charset: 'utf8',
     filename: path.join(__dirname, '../db/shortly.sqlite')
