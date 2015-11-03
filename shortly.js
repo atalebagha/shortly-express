@@ -102,7 +102,8 @@ app.get('/links',
 function(req, res) {
   Links.reset()
   new Link('user_id',req.session.userid).fetch().then(function(links) {
-    res.send(200, links.models);
+    console.log(links)
+    res.send(200, links.attributes);
   });
 });
 
@@ -115,7 +116,7 @@ function(req, res) {
     return res.send(404);
   }
 
-  new Link({ url: uri }).fetch().then(function(found) {
+  new Link({ url: uri, user_id: req.session.userid}).fetch().then(function(found) {
     if (found) {
       res.send(200, found.attributes);
     } else {
