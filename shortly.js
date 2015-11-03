@@ -47,13 +47,14 @@ app.get('/login', function (req, res) {
 app.post('/login', function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
-  var userid = db.knex.select('id').from('users').where('username', username);
-  if (userid) {
-    req.session.userid = userid;
-    res.redirect('/links');
-  } else {
-    res.redirect('/login');
-  }
+  var userid;
+  var model = Users.query('where','username','=',username).fetch().then(function (model) {
+    console.log(model);
+    req.session.userid = model.id;
+    res.redirect('/');
+  }).catch(function (err) {
+    throw err;
+  });
 });
 
 app.get('/signup', function (req, res) {
