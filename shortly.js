@@ -2,6 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
+var Promise = require('bluebird');
 
 
 var db = require('./app/config');
@@ -17,33 +19,101 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
 // Parse JSON (uniform resource locators)
+app.use(session({
+  secret: '42ds3nsdf'
+}));
 app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+var restrict = function (req, res, next) {
+  if (req.session.userid) {
+    next();
+  } else {
+    req.session.error = 'Access denied!';
+    res.redirect('/login');
+  }
+};
 
-app.get('/', 
+var sess;
+
+app.all(['/','/create', '/links'], restrict);
+
+app.get('/login', function (req, res) {
+  res.render('login');
+});
+
+app.post('/login', function (req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+  var userid = db.knex.select('id').from('users').where('username', username);
+  if (userid) {
+    req.session.userid = userid;
+    res.redirect('/links');
+  } else {
+    res.redirect('/login');
+  }
+});
+
+app.get('/signup', function (req, res) {
+  res.render('signup');
+});
+
+app.post('/signup', function (req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+
+  console.log(username);
+  console.log(password);
+
+  var user = new User({
+    username: username,
+    password: password
+  })
+    .save()
+    .then(function (model) {
+      console.log(model);
+      new User({username: username})
+        .fetch()
+        .then(function (found) {
+        console.log(found);
+      });
+      // req.session.userid =
+    });
+
+  if (userid) {
+    var userid = db.knex.select('id').from('users').where('username', username);
+    req.session.userid = userid;
+      res.redirect('/links');
+  } else {
+    res.redirect('/login');
+  }
+
+});
+
+
+app.get('/',
 function(req, res) {
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/create',
 function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/links',
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
 
-app.post('/links', 
+app.post('/links',
 function(req, res) {
   var uri = req.body.url;
-
+  console.log(req.body.url);
   if (!util.isValidUrl(uri)) {
     console.log('Not a valid url: ', uri);
     return res.send(404);
@@ -62,7 +132,8 @@ function(req, res) {
         var link = new Link({
           url: uri,
           title: title,
-          base_url: req.headers.origin
+          base_url: req.headers.origin,
+          user_id: req.session.userid
         });
 
         link.save().then(function(newLink) {
@@ -77,6 +148,7 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+
 
 
 
