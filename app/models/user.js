@@ -8,10 +8,6 @@ var User = db.Model.extend({
     this.on('saving', this.hashPassword, this);
   },
 
-  validateSave: function() {
-    return checkit(rules).run(this.attributes);
-  },
-
   links:  function () {
     return this.hasMany(Link);
   },
@@ -23,18 +19,7 @@ var User = db.Model.extend({
         resolve(hash); // data is created only after this occurs
       });
     });
-  },
-
-  comparePassword: function (model, attr, options) {
-    return new Promise (function (resolve, reject){
-      bcrypt.compare(model.attributes.password, this.password, function (err, result) {
-        if (err) reject(err);
-        console.log(result);
-        resolve(result);
-      });
-    });
-  },
-
+  }
 });
 
 module.exports = User;
