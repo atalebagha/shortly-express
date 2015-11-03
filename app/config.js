@@ -1,4 +1,5 @@
 var Bookshelf = require('bookshelf');
+var knex = require('knex');
 var path = require('path');
 
 var db = Bookshelf.initialize({
@@ -17,6 +18,7 @@ db.knex.schema.hasTable('urls').then(function(exists) {
   if (!exists) {
     db.knex.schema.createTable('urls', function (link) {
       link.increments('id').primary();
+      link.integer('user_id');
       link.string('url', 255);
       link.string('base_url', 255);
       link.string('code', 100);
@@ -45,5 +47,16 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
 // Add additional schema definitions below
 /************************************************************/
 
+db.knex.schema.hasTable('users').then( function (exists) {
+  if (!exists) {
+    db.knex.schema.createTable('users', function (user) {
+      user.increments('id').primary();
+      user.string('username', 32);
+      user.string('password', 255);
+    }).then(function (table) {
+      console.log('Created Table', table);
+    });
+  }
+});
 
 module.exports = db;
